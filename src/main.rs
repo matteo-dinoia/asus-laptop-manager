@@ -7,6 +7,7 @@ fn get_gpu_mode() -> String{
 
 	return String::from_utf8_lossy(&output.stdout)
 			.replace("\n", "")
+			.to_ascii_lowercase()
 			.to_string();
 }
 
@@ -19,11 +20,18 @@ fn get_fan_mode() -> String{
 	return String::from_utf8_lossy(&output.stdout)
 			.split(" ").last().unwrap()
 			.replace("\n", "")
+			.to_ascii_lowercase()
 			.to_string();
 }
 
 fn get_auto_cpufreq_mode() -> String{
-	return "'Not implemented yet'".to_string();
+	let output = Command::new("auto-cpufreq")
+			.arg("--get-state")
+			.output().unwrap();
+
+
+	return String::from_utf8_lossy(&output.stdout)
+			.trim().to_string();
 }
 
 fn set_gpu_mode(mode: &str){
@@ -88,6 +96,23 @@ fn option_auto_cpufreq(suboption: &str){
 	}
 }
 
+fn print_help(){
+	println!("To change it use the following options"); 
+	println!("- asus fan <option>");
+	println!("\t- quiet[/Q/1]");
+	println!("\t- balanced[/B/2]");
+	println!("\t- performance[/P/3]");
+	println!("- asus gpu <option>");
+	println!("\t- integrated[/Q/1]");
+	println!("\t- hybrid[/B/2]");
+	println!("\t- nvidia[/P/3]");
+	println!("- asus freq <option>");
+	println!("\t- powersave[/S/1]");
+	println!("\t- default[/D/2]");
+	println!("\t- performance[/P/3]");
+	println!("Write 'asus help' to see this page");
+}
+
 fn option_menu(option: &str){
 	let suboption = std::env::args().nth(2);
 	let suboption_str = &suboption.unwrap_or("list".to_string());
@@ -96,19 +121,7 @@ fn option_menu(option: &str){
 		"gpu" => option_gpu(suboption_str),
 		"fan" => option_fan(suboption_str),
 		"cpu" | "freq" | "cpufreq" | "auto_cpufreq" => option_auto_cpufreq(suboption_str),
-		"help" | "-h" | "--help" => {
-			println!("To change it use the following options"); 
-			println!("- asus fan <option>");
-			println!("\t- quiet[/Q/1]");
-			println!("\t- balanced[/B/2]");
-			println!("\t- performance[/P/3]");
-			println!("- asus gpu <option>");
-			println!("\t- integrated[/Q/1]");
-			println!("\t- hybrid[/B/2]");
-			println!("\t- nvidia[/P/3]");
-			println!("Write 'asus help' to see this page");
-			// TODO update
-		}
+		"help" | "-h" | "--help" => print_help(),
 		other => {
 			println!("Option '{other}' unrecognised, try 'asus help'"); 
 		}
