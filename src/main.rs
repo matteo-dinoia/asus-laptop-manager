@@ -54,6 +54,7 @@ fn set_fan_mode(mode: &str){
 }
 
 fn set_auto_cpufreq_mode(mode: &str){
+	// TODO add setup (to add visudo)
 	Command::new("sudo")
 			.arg("auto-cpufreq")
 			.arg("--force")
@@ -96,6 +97,39 @@ fn option_auto_cpufreq(suboption: &str){
 	}
 }
 
+fn option_status(suboption: &str){
+	let res = match suboption {
+		"cpu" => &get_auto_cpufreq_mode(),
+		"fan" => &get_fan_mode(),
+		"gpu" => &get_gpu_mode(),
+		other => {
+			println!("Status suboption '{other}' unrecognised, try 'asus help'");
+			return;
+		}
+	};
+
+	println!("{}", res);
+}
+
+fn option_status_id(suboption: &str){
+	let res = match suboption {
+		"cpu" => ["powersave", "reset", "performance"].iter()
+				.position(|&x| x == get_auto_cpufreq_mode()).unwrap(),
+		"fan" => ["quiet", "balanced", "performance"].iter()
+				.position(|&x| x == get_fan_mode()).unwrap(),
+		"gpu" => ["integrated", "hybrid", "asusmuxdgpu"].iter()
+				.position(|&x| x == get_gpu_mode()).unwrap(),
+		other => {
+			println!("Status suboption '{other}' unrecognised, try 'asus help'");
+			return;
+		}
+	};
+
+	println!("{}", res + 1);
+}
+
+
+
 fn print_help(){
 	println!("To change it use the following options"); 
 	println!("- asus fan <option>");
@@ -106,10 +140,18 @@ fn print_help(){
 	println!("\t- integrated[/Q/1]");
 	println!("\t- hybrid[/B/2]");
 	println!("\t- nvidia[/P/3]");
-	println!("- asus freq <option>");
+	println!("- asus cpu <option>");
 	println!("\t- powersave[/S/1]");
 	println!("\t- default[/D/2]");
 	println!("\t- performance[/P/3]");
+	println!("- asus status <option>");
+	println!("\t- cpu");
+	println!("\t- fan");
+	println!("\t- gpu");
+	println!("- asus status-id <option>");
+	println!("\t- cpu");
+	println!("\t- fan");
+	println!("\t- gpu");
 	println!("Write 'asus help' to see this page");
 }
 
@@ -120,7 +162,9 @@ fn option_menu(option: &str){
 	match option {
 		"gpu" => option_gpu(suboption_str),
 		"fan" => option_fan(suboption_str),
-		"cpu" | "freq" | "cpufreq" | "auto_cpufreq" => option_auto_cpufreq(suboption_str),
+		"cpu" => option_auto_cpufreq(suboption_str),
+		"status" => option_status(suboption_str),
+		"status-id" => option_status_id(suboption_str),
 		"help" | "-h" | "--help" => print_help(),
 		other => {
 			println!("Option '{other}' unrecognised, try 'asus help'"); 
