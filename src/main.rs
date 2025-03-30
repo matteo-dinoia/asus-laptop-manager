@@ -1,3 +1,8 @@
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+#![warn(clippy::cargo)]
+#![allow(clippy::cargo_common_metadata)]
+
 use std::process::Command;
 
 fn get_gpu_mode() -> Option<String> {
@@ -5,9 +10,8 @@ fn get_gpu_mode() -> Option<String> {
 
     Some(
         String::from_utf8_lossy(&output.stdout)
-            .replace("\n", "")
-            .to_ascii_lowercase()
-            .to_string(),
+            .replace('\n', "")
+            .to_ascii_lowercase(),
     )
 }
 
@@ -19,11 +23,10 @@ fn get_fan_mode() -> Option<String> {
 
     Some(
         String::from_utf8_lossy(&output.stdout)
-            .split(" ")
+            .split(' ')
             .last()?
-            .replace("\n", "")
-            .to_ascii_lowercase()
-            .to_string(),
+            .replace('\n', "")
+            .to_ascii_lowercase(),
     )
 }
 
@@ -113,7 +116,7 @@ fn option_status(suboption: &str) {
     };
 
     if let Some(res) = res {
-        println!("{}", res);
+        println!("{res}");
     }
 }
 
@@ -177,7 +180,7 @@ fn print_help() {
 
 fn option_menu(option: &str) {
     let suboption = std::env::args().nth(2);
-    let suboption_str = &suboption.unwrap_or("list".to_string());
+    let suboption_str = &suboption.unwrap_or_else(|| "list".to_string());
 
     match option {
         "gpu" => option_gpu(suboption_str),
@@ -202,9 +205,9 @@ fn main() {
         None => {
             println!(
                 "Cpu: {}, Fan: {}, Gpu: {}",
-                get_auto_cpufreq_mode().unwrap_or("--".to_string()),
-                get_fan_mode().unwrap_or("--".to_string()),
-                get_gpu_mode().unwrap_or("--".to_string()),
+                get_auto_cpufreq_mode().unwrap_or_else(|| "--".to_string()),
+                get_fan_mode().unwrap_or_else(|| "--".to_string()),
+                get_gpu_mode().unwrap_or_else(|| "--".to_string()),
             );
         }
     }
