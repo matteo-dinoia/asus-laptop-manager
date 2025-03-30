@@ -10,10 +10,10 @@
         "Name": "Asus Config",
         "Version": "1.0",
         "Category": "Utilities",
-        "Description": "Customize asus laptop by setting cpu, fan, gpu (require asusctl, supergfxctl, auto-cpufreq)",
+        "Description": "Customize asus laptop by setting cpu, fan, gpu (requires asusctl, supergfxctl, auto-cpufreq)",
 
         "Icon": "computer-laptop",
-        "Id": "com.github.matteo-dinoia.asus-widget",
+        "Id": "kasus.widget",
         "Website": "https://github.com/matteo-dinoia/asus-widget",
 
         "EnabledByDefault": true
