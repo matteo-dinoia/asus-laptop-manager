@@ -1,0 +1,23 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "dmatteo002@gmail.com",
+                "Name": "Matteo Di Noia"
+            }
+        ],
+        "Name": "Asus Config",
+        "Version": "1.0",
+        "Category": "Utilities",
+        "Description": "Customize asus laptop by setting cpu, fan, gpu (require asusctl, supergfxctl, auto-cpufreq)",
+
+        "Icon": "computer-laptop",
+        "Id": "com.github.matteo-dinoia.asus-widget",
+        "Website": "https://github.com/matteo-dinoia/asus-widget",
+
+        "EnabledByDefault": true
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-NotificationAreaCategory": "Hardware"
+}
