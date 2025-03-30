@@ -7,7 +7,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
 
 //TODO add setting to reduce fan/cpu at startup
-//TODO power profile has isTlpInstalled property
+//TODO power profile has isTlpInstalled
+// Add to file visudo  name hsost = (root) NOPASSWD: /usr/bin/auto-cpufreq
 PlasmoidItem {
     id: root
 
