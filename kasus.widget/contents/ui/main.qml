@@ -7,7 +7,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasma5support as Plasma5Support
 
 //TODO add setting to reduce fan/cpu at startup
-//TODO power profile has isTlpInstalled
+//TODO power profile has isTlpInstalled property
 // Add to file visudo  name hsost = (root) NOPASSWD: /usr/bin/auto-cpufreq
 PlasmoidItem {
     id: root
@@ -25,15 +25,22 @@ PlasmoidItem {
     property bool gpu_changed: false
 
     Component.onCompleted: {
+        // TODO from settings
+        if(true){
+            fanLoaded = true
+            runner.exec("asus fan 1")
+        } else {
+            runner.exec("asus status-id fan")
+        }
+
         runner.exec("asus status-id cpu")
-        runner.exec("asus status-id fan")
         runner.exec("asus status-id gpu")
     }
 
     function updateCpu(val){
         root.cpu = val
         if(!loaded) return;
-        runner.exec("sudo asus cpu " + val)
+        runner.exec("asus cpu " + val)
     }
 
     function updateFan(val){

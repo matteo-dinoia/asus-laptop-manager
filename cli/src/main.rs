@@ -84,7 +84,7 @@ fn option_gpu(suboption: &str) {
 
 fn option_fan(suboption: &str) {
     match suboption {
-        "quiet" | "q" | "1" => set_fan_mode("Quiet"),
+        "lowpower" | "l" | "1" => set_fan_mode("Low-Power"),
         "balanced" | "b" | "2" => set_fan_mode("Balanced"),
         "performance" | "p" | "3" => set_fan_mode("Performance"),
         other => {
@@ -130,7 +130,7 @@ fn option_status_id(suboption: &str) {
         }
         "fan" => {
             let mode = get_fan_mode();
-            ["quiet", "balanced", "performance"]
+            ["lowpower", "balanced", "performance"]
                 .iter()
                 .position(|&x| Some(x.to_string()) == mode)
         }
@@ -156,7 +156,7 @@ fn option_status_id(suboption: &str) {
 fn print_help() {
     println!("To change it use the following options");
     println!("- asus fan <option>");
-    println!("\t- quiet[/Q/1]");
+    println!("\t- lowpower[/L/1]");
     println!("\t- balanced[/B/2]");
     println!("\t- performance[/P/3]");
     println!("- asus gpu <option>");
