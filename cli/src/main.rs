@@ -84,7 +84,7 @@ fn option_gpu(suboption: &str) {
 
 fn option_fan(suboption: &str) {
     match suboption {
-        "lowpower" | "l" | "1" => set_fan_mode("Low-Power"),
+        "lowpower" | "l" | "1" => set_fan_mode("Quiet"),
         "balanced" | "b" | "2" => set_fan_mode("Balanced"),
         "performance" | "p" | "3" => set_fan_mode("Performance"),
         other => {
@@ -130,7 +130,7 @@ fn option_status_id(suboption: &str) {
         }
         "fan" => {
             let mode = get_fan_mode();
-            ["lowpower", "balanced", "performance"]
+            ["quiet", "balanced", "performance"]
                 .iter()
                 .position(|&x| Some(x.to_string()) == mode)
         }
