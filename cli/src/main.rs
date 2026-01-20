@@ -17,15 +17,16 @@ fn get_gpu_mode() -> Option<String> {
 
 fn get_fan_mode() -> Option<String> {
     let output = Command::new("asusctl")
-        .args(["profile", "-p"])
+        .args(["profile", "get"])
         .output()
         .ok()?;
 
     Some(
         String::from_utf8_lossy(&output.stdout)
+            .split('\n')
+            .next()?
             .split(' ')
             .last()?
-            .replace('\n', "")
             .to_ascii_lowercase(),
     )
 }
@@ -50,7 +51,7 @@ fn set_gpu_mode(mode: &str) {
 
 fn set_fan_mode(mode: &str) {
     let res = Command::new("asusctl")
-        .args(["profile", "-P", mode])
+        .args(["profile", "set", mode])
         .output();
 
     if res.is_err() {
