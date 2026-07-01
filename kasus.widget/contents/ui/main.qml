@@ -21,49 +21,80 @@ PlasmoidItem {
     property bool gpuLoaded: false
     property bool loaded: cpuLoaded && fanLoaded && gpuLoaded
 
-    //property string logs: ""
+    property string logs: "LOGS:\n"
     property bool gpu_changed: false
 
     Component.onCompleted: {
-        // TODO from settings
-        if(true){
-            fanLoaded = true
-            runner.exec("asus fan 1")
-        } else {
-            runner.exec("asus status-id fan")
-        }
-
-        runner.exec("asus status-id cpu")
-        runner.exec("asus status-id gpu")
+        runner.exec("asus status-id fan");
+        runner.exec("asus status-id cpu");
+        runner.exec("asus status-id gpu");
     }
 
     function updateCpu(val){
-        root.cpu = val
-        if(!loaded) return;
-        runner.exec("asus cpu " + val)
+        logs+="CPU S (old "+ root.cpu + " curr " + val + " loaded "+ cpuLoaded + ")\n";
+        if(isNaN(val) || val < 1 || val > 3) return;
+
+        if(!cpuLoaded){
+            cpuLoaded = true;
+            root.cpu = val;
+            logs+="CPU L (old "+ root.cpu + " curr " + val + " loaded "+ cpuLoaded + ")\n";
+            return;
+        } else if(root.cpu == val){
+            return;
+        }
+
+        root.cpu = val;
+        logs+="CPU E (old "+ root.cpu + " curr " + val + " loaded "+ cpuLoaded + ")\n";
+        runner.exec("asus cpu " + val + " --use-run0");
     }
 
     function updateFan(val){
-        root.fan = val
-        if(!loaded) return;
-        runner.exec("asus fan " + val)
+        logs+="FAN S (old "+ root.fan + " curr " + val + " loaded "+ fanLoaded + ")\n";
+        if(isNaN(val) || val < 1 || val > 3) return;
+
+        if(!fanLoaded){
+            fanLoaded = true;
+            root.fan = val;
+            logs+="FAN L (old "+ root.fan + " curr " + val + " loaded "+ fanLoaded + ")\n";
+            return;
+        } else if(root.fan == val){
+            return;
+        }
+
+
+        root.fan = val;
+        logs+="FAN E (old "+ root.fan + " curr " + val + " loaded "+ fanLoaded + ")\n";
+        runner.exec("asus fan " + val);
     }
 
     function updateGpu(val){
-        root.gpu = val
-        if(!loaded) return;
-        gpu_changed = true
-        runner.exec("asus gpu " + root.gpu)
+        logs+="GPU S (old "+ root.gpu + " curr " + val + " loaded "+ gpuLoaded + ")\n";
+        if(isNaN(val) || val < 1 || val > 2) return;
+
+        if(!gpuLoaded){
+            gpuLoaded = true;
+            root.gpu = val;
+            logs+="GPU L (old "+ root.gpu + " curr " + val + " loaded "+ gpuLoaded + ")\n";
+            return;
+        } else if(root.gpu == val || !gpuLoaded){
+            return;
+        }
+
+        root.gpu = val;
+        gpu_changed = true;
+        logs+="GPU E (old "+ root.gpu + " curr " + val + " loaded "+ gpuLoaded + ")\n";
+        runner.exec("asus gpu " + root.gpu);
     }
 
     property string statusIcon: {
-        print(cpu + " "+  fan+ " " + gpu)
         if(!loaded)
             return "paint-unknown";
-        else if(cpu == 1 && fan == 1 && gpu == 1)
-            return "battery-profile-powersave"
+        else if(cpu <= 2 && fan == 1 && gpu == 1)
+            return "battery-profile-powersave";
+        else if(cpu <= 2 && fan == 1 && gpu == 2)
+            return "show-gpu-effects";
         else
-            return "battery-profile-performance"
+            return "battery-profile-performance";
     }
 
     compactRepresentation: MouseArea {
@@ -77,14 +108,13 @@ PlasmoidItem {
         }
     }
 
-    fullRepresentation: Item {
+    fullRepresentation: Item { // TODO use scroll view
         Layout.minimumWidth: 300
         Layout.minimumHeight: 350
 
+
         ColumnLayout {
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors.fill: parent
             anchors.margins: Kirigami.Units.largeSpacing
 
             RowLayout {
@@ -101,18 +131,24 @@ PlasmoidItem {
                     Layout.fillWidth: true
 
                     Label {
-                        text: "Cpu"
+                        text: "Cpu (require sudo)"
                     }
-                    Slider {
-                        id: sliderCpu
-                        value: root.cpu
-                        from: 1
-                        to: 3
-                        stepSize: 1
-                        live: false
-                        onValueChanged: updateCpu(value)
-                        enabled: root.loaded
+                    RowLayout {
+                        id: listCpu
                         Layout.fillWidth: true
+
+                        Repeater {
+                            model: ["Powersave", "Auto", "Performance"]
+                            Button {
+                                required property int index
+                                required property string modelData
+
+                                Layout.fillWidth: true
+                                text: modelData
+                                onClicked: updateCpu(index + 1)
+                                enabled: root.cpuLoaded && index + 1 != cpu
+                            }
+                        }
                     }
                     Label {
 
@@ -150,7 +186,7 @@ PlasmoidItem {
                         stepSize: 1
                         live: false
                         onValueChanged: updateFan(value)
-                        enabled: root.loaded
+                        enabled: root.fanLoaded
                         Layout.fillWidth: true
                     }
                     Label {
@@ -178,15 +214,15 @@ PlasmoidItem {
                     Layout.fillWidth: true
 
                     Label {
-                        text: "Gpu" + (gpu_changed ? " (reboot now to see result)"
-                                : " (status coming soon)")
+                        text: "Gpu" + (gpu_changed ? " (reboot/logout now to see result)"
+                                : " ")
                     }
                     RowLayout {
                         id: listGpu
                         Layout.fillWidth: true
 
                         Repeater {
-                            model: ["Disabled", "Hybrid", "Dedicated"]
+                            model: ["Disabled", "Hybrid"]
                             Button {
                                 required property int index
                                 required property string modelData
@@ -194,12 +230,12 @@ PlasmoidItem {
                                 Layout.fillWidth: true
                                 text: modelData
                                 onClicked: updateGpu(index + 1)
-                                enabled: root.loaded && index + 1 != gpu && !gpu_changed
+                                enabled: root.gpuLoaded && index + 1 != gpu
                             }
                         }
                     }
                     Label {
-                        text: "Change gpu used by system using supergfxctl"
+                        text: "Change gpu used enabled by cardwire [TODO dedicated gpu]"
 
                         color: Kirigami.Theme.disabledTextColor
                         font: Kirigami.Theme.smallFont
@@ -209,14 +245,20 @@ PlasmoidItem {
                 }
             }
 
-            /*Label{
+            ScrollView{
                 Layout.fillWidth: true
-                text: logs
-                color: Kirigami.Theme.disabledTextColor
-                font: Kirigami.Theme.smallFont
-                wrapMode: Text.Wrap
-            }*/
+                Layout.fillHeight: true
+
+                Label{
+                    Layout.fillWidth: true
+                    text: logs
+                    color: Kirigami.Theme.disabledTextColor
+                    font: Kirigami.Theme.smallFont
+                    wrapMode: Text.Wrap
+                }
+            }
         }
+
     }
 
     Plasma5Support.DataSource {
@@ -225,25 +267,23 @@ PlasmoidItem {
         connectedSources: []
         onNewData: function(source, data) {
             if (data["exit code"] != 0) return;
-            let output = data["stdout"]
-            //logs += source + " -> " + output + " \n"
+            let output = data["stdout"];
+            logs += "DATA:" + source + " -> " + output + "\n";
 
             if(source == "asus status-id cpu"){
-                updateCpu(parseInt(output))
-                root.cpuLoaded = true
+                updateCpu(parseInt(output));
             }else if(source == "asus status-id fan"){
-                updateFan(parseInt(output))
-                root.fanLoaded = true
+                updateFan(parseInt(output));
             }else if(source == "asus status-id gpu"){
-                updateGpu(parseInt(output))
-                root.gpuLoaded = true
+                updateGpu(parseInt(output));
             }
 
-            disconnectSource(source)
+            disconnectSource(source);
         }
 
         function exec(cmd) {
-            runner.connectSource(cmd)
+            logs += "CMD:" + cmd + "\n";
+            runner.connectSource(cmd);
         }
     }
 }
