@@ -6,12 +6,17 @@
 use std::process::Command;
 
 fn get_gpu_mode() -> Option<String> {
-    let output = Command::new("supergfxctl").arg("-g").output().ok()?;
+    let output = Command::new("cardwire").arg("get").output().ok()?;
 
     Some(
         String::from_utf8_lossy(&output.stdout)
-            .replace('\n', "")
-            .to_ascii_lowercase(),
+            .split('\n')
+            .next()?
+            .split(':')
+            .last()?
+            .trim()
+            .to_ascii_lowercase()
+            .to_string()
     )
 }
 
@@ -41,7 +46,7 @@ fn get_auto_cpufreq_mode() -> Option<String> {
 }
 
 fn set_gpu_mode(mode: &str) {
-    let res = Command::new("supergfxctl").arg("-m").arg(mode).output();
+    let res = Command::new("cardwire").arg("set").arg(mode).output();
 
     if res.is_err() {
         println!("Failed to set gpu mode");
@@ -61,10 +66,18 @@ fn set_fan_mode(mode: &str) {
 }
 
 fn set_auto_cpufreq_mode(mode: &str) {
-    // TODO add setup (to add visudo)
-    let res = Command::new("sudo")
-        .args(["auto-cpufreq", "--force", mode])
-        .output();
+    let suboption = std::env::args().nth(3);
+
+    let res;
+    if suboption == Some("--use-run0".to_string()){
+        res = Command::new("run0")
+            .args(["auto-cpufreq", "--force", mode])
+            .output();
+    }else {
+        res = Command::new("sudo")
+            .args(["auto-cpufreq", "--force", mode])
+            .output();
+    }
 
     if res.is_err() {
         println!("Failed to set auto-cpufreq mode");
@@ -74,9 +87,8 @@ fn set_auto_cpufreq_mode(mode: &str) {
 
 fn option_gpu(suboption: &str) {
     match suboption {
-        "integrated" | "i" | "1" => set_gpu_mode("Integrated"),
-        "hybrid" | "h" | "2" => set_gpu_mode("Hybrid"),
-        "nvidia" | "n" | "3" => set_gpu_mode("AsusMuxDgpu"),
+        "integrated" | "i" | "1" => set_gpu_mode("integrated"),
+        "hybrid" | "h" | "2" => set_gpu_mode("hybrid"),
         other => {
             println!("Gpu subption '{other}' unrecognised, try 'asus help'");
         }
@@ -85,7 +97,7 @@ fn option_gpu(suboption: &str) {
 
 fn option_fan(suboption: &str) {
     match suboption {
-        "lowpower" | "l" | "1" => set_fan_mode("Quiet"),
+        "quiet" | "q" | "1" => set_fan_mode("Quiet"),
         "balanced" | "b" | "2" => set_fan_mode("Balanced"),
         "performance" | "p" | "3" => set_fan_mode("Performance"),
         other => {
@@ -125,7 +137,7 @@ fn option_status_id(suboption: &str) {
     let res = match suboption {
         "cpu" => {
             let mode = get_auto_cpufreq_mode();
-            ["powersave", "reset", "performance"]
+            ["powersave", "default", "performance"]
                 .iter()
                 .position(|&x| Some(x.to_string()) == mode)
         }
@@ -137,7 +149,7 @@ fn option_status_id(suboption: &str) {
         }
         "gpu" => {
             let mode = get_gpu_mode();
-            ["integrated", "hybrid", "asusmuxdgpu"]
+            ["integrated", "hybrid"]
                 .iter()
                 .position(|&x| Some(x.to_string()) == mode)
         }
@@ -157,13 +169,13 @@ fn option_status_id(suboption: &str) {
 fn print_help() {
     println!("To change it use the following options");
     println!("- asus fan <option>");
-    println!("\t- lowpower[/L/1]");
+    println!("\t- quiet[/Q/1]");
     println!("\t- balanced[/B/2]");
     println!("\t- performance[/P/3]");
     println!("- asus gpu <option>");
     println!("\t- integrated[/Q/1]");
     println!("\t- hybrid[/B/2]");
-    println!("\t- nvidia[/P/3]");
+    // TODO println!("\t- nvidia[/P/3]");
     println!("- asus cpu <option>");
     println!("\t- powersave[/S/1]");
     println!("\t- default[/D/2]");
